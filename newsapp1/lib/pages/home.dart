@@ -1,5 +1,3 @@
-// ignore_for_file: unused_import, unnecessary_import, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, avoid_unnecessary_containers, prefer_const_constructors
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +7,7 @@ import 'package:newsapp1/models/category_model.dart';
 import 'package:newsapp1/models/slider_model.dart';
 import 'package:newsapp1/services/data.dart';
 import 'package:newsapp1/services/slider_data.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key});
@@ -19,18 +18,19 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<CategoryModel> categories = [];
-  List<sliderModel> sliders=[];
+  List<sliderModel> sliders = [];
 
+  int activeIndex = 0;
   @override
   void initState() {
     categories = getCategories();
-    sliders= getSliders();
+    sliders = getSliders();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    var Sliders;
+    var Sliders = sliders; // Initialize Sliders with the sliders list
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -48,6 +48,7 @@ class _HomeState extends State<Home> {
       ),
       body: Container(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               margin: EdgeInsets.only(left: 10.0),
@@ -55,38 +56,141 @@ class _HomeState extends State<Home> {
               child: ListView.builder(
                 shrinkWrap: true,
                 scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    return CategoryTile(
-                      image: categories[index].image,
-                      categoryName: categories[index].categoryName,
-                    );
-                  },
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  return CategoryTile(
+                    image: categories[index].image,
+                    categoryName: categories[index].categoryName,
+                  );
+                },
               ),
             ),
-            CarouselSlider.builder(itemCount: Sliders.length, itemBuilder: (context, index, realIndex){
-              String? res= sliders[index].image;
-              String? res1= sliders[index].name;
-              return buildImage(res!, index, res1!);
-            }, options: CarouselOptions(height: 200, viewportFraction: 1,enlargeCenterPage: true, enlargeStrategy: CenterPageEnlargeStrategy.height)),
+            SizedBox(
+              height: 30.0,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Breaking News!",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 24.0, fontFamily: 'Pacifico'),
+                  ),
+                  Text(
+                    "View All",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.0),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 20.0,
+            ),
+            CarouselSlider.builder(
+              itemCount: Sliders.length,
+              itemBuilder: (context, index, realIndex) {
+                String? res = sliders[index].image;
+                String? res1 = sliders[index].name;
+                return buildImage(res!, index, res1!);
+              },
+              options: CarouselOptions(
+                  height: 250,
+                  autoPlay: true,
+                  enlargeCenterPage: true,
+                  enlargeStrategy: CenterPageEnlargeStrategy.height,
+                  onPageChanged: (index, reason) {
+                    setState(() {
+                      activeIndex = index;
+                    });
+                  }),
+            ),
+            SizedBox(
+              height: 30.0,
+            ), // Add a comma here
+            Center(child: buildIndicator()),
+            SizedBox(
+              height: 30.0,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Trending News!",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0),
+                  ),
+                  Text(
+                    "View All",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.0),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-    Widget buildImage(String image, int index, String name)=>Container(
-    child: Image.asset(image, fit: BoxFit.cover, width: MediaQuery.of(context).size.width,) , 
-  );
+
+  Widget buildImage(String image, int index, String name) => Container(
+        margin: EdgeInsets.symmetric(horizontal: 5.0),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                image,
+                height: 250,
+                fit: BoxFit.cover,
+                width: MediaQuery.of(context).size.width,
+              ),
+            ),
+            Container(
+              height: 250,
+              padding: EdgeInsets.only(left: 10.0),
+              margin: EdgeInsets.only(top: 170.0),
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10))),
+              child: Text(name,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      );
+
+  Widget buildIndicator() => AnimatedSmoothIndicator(
+      activeIndex: activeIndex,
+      count: sliders.length,
+      effect: SlideEffect(
+          dotWidth: 15, dotHeight: 15, activeDotColor: Colors.blue));
 }
-
-
-
 
 class CategoryTile extends StatelessWidget {
   final String image;
   final String categoryName;
 
-  CategoryTile({ required this.categoryName,  required this.image});
+  CategoryTile({required this.categoryName, required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -102,19 +206,23 @@ class CategoryTile extends StatelessWidget {
               height: 70,
               fit: BoxFit.cover,
             ),
-          ), 
+          ),
           Container(
-              width: 120,
-              height: 70,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6), 
-                color: Colors.black38,),
-            
+            width: 120,
+            height: 70,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: Colors.black38,
+            ),
             child: Center(
-                child: Text(
-              categoryName, 
-              style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)
-            ),)
+              child: Text(
+                categoryName,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
           )
         ],
       ),
